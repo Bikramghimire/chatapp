@@ -25,6 +25,27 @@ app.get("/", (req, res) => {
 app.use("/api/signup", signUpRoute);
 app.use("/api/signin", signInRoute);
 
+app.use((req, res, next) => {
+  const token =
+    req.body.token || req.query.token || req.headers["x-access-token"];
+
+  if (!token) {
+    return res.status(403).send("A token is required for authentication");
+  }
+  try {
+    console.log("the roken", token);
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    req.user = decoded;
+  } catch (error) {
+    return res.status(401).send("Invalid Token");
+  }
+  return next();
+});
+
+app.get("/api/verifytoken", (req, res) => {
+  return res.send("this is after authentication");
+});
+
 app.listen(port, () => {
   console.log(`server started on port ${port}`);
 });
